@@ -102,7 +102,7 @@ resource "aws_instance" "app_server" {
               usermod -aG docker ubuntu
 
               # Clone your repository directly (Replace with your actual GitHub repository URL)
-              git clone https://github.com/balajee-rm/.git /home/ubuntu/project
+              git clone https://github.com/balajee-rm/soa-ms-backend.git /home/ubuntu/project
               
               # Navigate and start docker compose
               cd /home/ubuntu/project/backend
