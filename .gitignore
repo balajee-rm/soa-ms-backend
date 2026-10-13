@@ -1,0 +1,11 @@
+# Local Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.user.tfvars
+
+# Build outputs & target files for Java/Maven
+**/target/
+.mvn/

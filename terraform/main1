@@ -1,0 +1,26 @@
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2.2"
+    }
+  }
+}
+
+provider "null" {}
+
+# This runs your existing docker-compose file through Terraform
+resource "null_resource" "docker_compose_deploy" {
+  triggers = {
+    always_run = timestamp() # Forces re-run if needed, or remove to run only once
+  }
+
+  provisioner "local-exec" {
+    command = "docker-compose up --build -d"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "docker-compose down"
+  }
+}

@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    networks:
+      - microservice-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build: ./MS-EUREKA-SERVER
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservice-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  ms1:
+    build: ./MS1.1
+    container_name: ms1_service
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - microservice-net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydb
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+  ms2-1:
+    build: ./MS2.1
+    container_name: ms2_service_1
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - microservice-net
+    environment:
+      - SERVER_PORT=8002
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydb
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+  ms2-2:
+    build: ./MS2.2
+    container_name: ms2_service_2
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - microservice-net
+    environment:
+      - SERVER_PORT=8003
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydb
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+  api-gateway:
+    build: ./MS-API-GATEWAY
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - eureka-server
+      - ms1
+      - ms2-1
+      - ms2-2
+    networks:
+      - microservice-net
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+networks:
+  microservice-net:
+    driver: bridge
