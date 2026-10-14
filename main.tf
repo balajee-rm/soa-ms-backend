@@ -86,10 +86,10 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
-# 3. Create t2.micro instance and automatically setup & run docker compose
+# 3. Create t3.small instance with corrected directory path
 resource "aws_instance" "app_server" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
+  instance_type          = "t3.small"
   key_name               = "vockey"
   vpc_security_group_ids = [aws_security_group.microservice_sg.id]
 
@@ -101,16 +101,16 @@ resource "aws_instance" "app_server" {
               systemctl enable docker
               usermod -aG docker ubuntu
 
-              # Clone your repository directly (Replace with your actual GitHub repository URL)
+              # Clone repository
               git clone https://github.com/balajee-rm/soa-ms-backend.git /home/ubuntu/project
               
-              # Navigate and start docker compose
-              cd /home/ubuntu/project/backend
+              # Navigate to project root where docker-compose.yml is located and launch stack
+              cd /home/ubuntu/project
               docker compose up --build -d
               EOF
 
   tags = {
-    Name = "Academy-Microservice-VM"
+    Name = "Academy-Microservice-VM-T3"
   }
 }
 
